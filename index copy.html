@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Timeline Perdebatan Pancasila</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #373234;             
+      --bg-light: #3e3a37;       
+      --accent: #D84339;         
+      --accent-soft: #F3ECE4;    
+      --text-main: #F3ECE4;      
+      --text-muted: #E8DCCC;     
+      --card-bg: #2f2c2b;        
+      --line: rgba(255, 255, 255, 0.15);
+      --shadow-soft: 0 22px 40px rgba(0, 0, 0, 0.6);
+      --radius-xl: 26px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #4a4542 0%, #373234 45%, #2b2826 85%, #1f1c1b 100%);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 16px 80px;
+    }
+
+    header.hero {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(50, 46, 45, 0.7);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .chip span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(216, 67, 57, 0.6);
+    }
+
+    .hero-title {
+      font-family: "Playfair Display", serif;
+      font-size: clamp(32px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero-sub {
+      max-width: 680px;
+      margin: 0 auto;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .hero-highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* TIMELINE LAYOUT */
+    .timeline-wrapper {
+      position: relative;
+      margin-top: 60px;
+      padding-bottom: 80px;
+    }
+
+    /* garis vertical besar di tengah */
+    .timeline-axis {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .timeline-axis::before {
+      content: "";
+      width: 7px;
+      border-radius: 999px;
+      margin-top: 40px;
+      margin-bottom: 40px;
+      background: linear-gradient(
+        180deg,
+        var(--accent) 0%,
+        #b73227 25%,
+        #ffffff 50%,
+        #b73227 75%,
+        var(--accent) 100%
+      );
+      box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.05),
+        0 0 40px rgba(216, 67, 57, 0.7);
+    }
+
+    .timeline-axis-label {
+      position: sticky;
+      top: 20px;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .timeline-axis-label span {
+      margin-top: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: rgba(25, 22, 21, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      backdrop-filter: blur(16px);
+    }
+
+    .timeline-items {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: 40px;
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      padding-block: 8px;
+      opacity: 0;
+      transform: translateY(80px) scale(0.96);
+      filter: blur(4px);
+      transition: opacity 0.9s ease, transform 0.9s ease, filter 0.9s ease;
+    }
+
+    .timeline-item.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+
+    /* supaya bergantian kiri-kanan */
+    .timeline-item:nth-child(odd) {
+      grid-template-areas: "meta card";
+    }
+
+    .timeline-item:nth-child(even) {
+      grid-template-areas: "card meta";
+    }
+
+    @media (max-width: 720px) {
+      .timeline-item,
+      .timeline-item:nth-child(even),
+      .timeline-item:nth-child(odd) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+          "meta"
+          "card";
+      }
+    }
+
+    .timeline-meta {
+      grid-area: meta;
+      display: flex;
+      justify-content: flex-end;
+      text-align: right;
+      padding-inline: 16px;
+    }
+
+    .timeline-item:nth-child(even) .timeline-meta {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    @media (max-width: 720px) {
+      .timeline-meta {
+        justify-content: flex-start;
+        text-align: left;
+        padding-inline: 4px;
+      }
+    }
+
+    .meta-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 260px;
+    }
+
+    .meta-era {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .meta-year {
+      font-family: "Playfair Display", serif;
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 0.9;
+    }
+
+    .meta-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 4px 10px;
+      align-self: flex-end;
+      border-radius: 999px;
+      background: rgba(216, 67, 57, 0.2);
+      color: var(--accent-soft);
+    }
+
+    .timeline-item:nth-child(even) .meta-tag {
+      align-self: flex-start;
+    }
+
+    @media (max-width: 720px) {
+      .meta-tag {
+        align-self: flex-start;
+      }
+    }
+
+    /* card konten */
+    .timeline-card {
+      grid-area: card;
+      background: radial-gradient(circle at top left, rgba(216, 67, 57, 0.22), transparent 60%)
+        , var(--card-bg);
+      border-radius: var(--radius-xl);
+      padding: 20px 22px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timeline-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.08), transparent 55%),
+                        radial-gradient(circle at 100% 100%, rgba(216, 67, 57, 0.25), transparent 55%);
+      opacity: 0.3;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-soft);
+      margin-bottom: 4px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--accent-soft);
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .card-text {
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .card-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(45, 40, 39, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-soft);
+    }
+
+    footer {
+      margin-top: 52px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    footer strong {
+      color: var(--accent-soft);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="chip">
+        <span class="dot"></span>
+        <span>Timeline Interaktif</span>
+      </div>
+      <h1 class="hero-title">Perdebatan di Balik Lahirnya Pancasila</h1>
+      <p class="hero-sub">
+        Bukan sekadar hafalan lima sila. Ini adalah rangkaian
+        <span class="hero-highlight">perdebatan, kompromi, dan keputusan sulit</span>
+        dari para pendiri bangsa — dari BPUPKI, Piagam Jakarta, hingga rumusan
+        Pancasila yang kita kenal hari ini.
+      </p>
+    </header>
+
+    <main class="timeline-wrapper">
+      <div class="timeline-axis"></div>
+      <div class="timeline-axis-label">
+        <span>Scroll untuk mengikuti kronologi</span>
+      </div>
+
+      <section class="timeline-items">
+
+        <!-- 1. MENCARI DASAR NEGARA -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Sidang BPUPKI I</div>
+              <div class="meta-year">1945</div>
+              <div class="meta-tag">29 Mei – 1 Juni</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 01</div>
+              <h2 class="card-title">“Negara ini mau berdiri di atas apa?”</h2>
+              <p class="card-sub">
+                Radjiman Wedyodiningrat membuka sidang: para tokoh diminta menjawab
+                pertanyaan paling fundamental.
+              </p>
+              <p class="card-text">
+                Dalam sidang pertama BPUPKI, muncul berbagai usulan dasar negara.
+                <strong>Moh. Yamin</strong> menekankan persatuan dan kebangsaan,
+                <strong>Soepomo</strong> mengusulkan negara integralistik yang kuat,
+                sementara sebagian tokoh Islam mendorong
+                <em>negara dengan dasar agama</em>. Belum ada kesepakatan —
+                tapi justru di sinilah panggung debat besar dimulai.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">BPUPKI</span>
+                <span class="badge">Perdebatan awal</span>
+                <span class="badge">Dasar negara</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. PIDATO 1 JUNI -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Pidato Soekarno</div>
+              <div class="meta-year">1 Juni</div>
+              <div class="meta-tag">“Lahirnya Pancasila”</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 02</div>
+              <h2 class="card-title">Soekarno melempar nama: “Pancasila”</h2>
+              <p class="card-sub">
+                Dari podium, Soekarno menawarkan lima prinsip — lalu menyatukannya
+                dalam satu kata yang belum pernah terdengar sebelumnya.
+              </p>
+              <p class="card-text">
+                Soekarno mengusulkan lima sila:
+                <em>Kebangsaan</em>, <em>Internasionalisme</em>,
+                <em>Demokrasi</em>, <em>Kesejahteraan Sosial</em>,
+                dan <em>Ketuhanan yang berkebudayaan</em>. Ia menyebutnya
+                “<strong>Pancasila</strong>”. Pidato ini memikat banyak anggota,
+                namun belum menutup perdebatan soal posisi agama dalam negara.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Lahirnya istilah</span>
+                <span class="badge">Visi kebangsaan</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. PIAGAM JAKARTA -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Panitia Sembilan</div>
+              <div class="meta-year">22 Juni</div>
+              <div class="meta-tag">Piagam Jakarta</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 03</div>
+              <h2 class="card-title">Kompromi tajam: “tujuh kata” lahir</h2>
+              <p class="card-sub">
+                Sembilan tokoh duduk semeja: nasionalis dan pemimpin Islam
+                bernegosiasi keras demi satu naskah pembukaan UUD.
+              </p>
+              <p class="card-text">
+                <strong>Panitia Sembilan</strong> (Sukarno, Hatta, Yamin, Agus Salim,
+                A.A. Maramis, Abdul Kahar Muzakir, Abikoesno, Achmad Subardjo,
+                Ki Bagus Hadikusumo) menyusun Piagam Jakarta. Rumusan sila pertama:
+                <em>“Ketuhanan, dengan kewajiban menjalankan syariat Islam bagi
+                pemeluk-pemeluknya”</em>. Ini menjadi titik kompromi penting,
+                tetapi juga “bom waktu” perdebatan berikutnya.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Kompromi politik</span>
+                <span class="badge">Tujuh kata</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. SIDANG BPUPKI II -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Sidang BPUPKI II</div>
+              <div class="meta-year">10–17 Juli</div>
+              <div class="meta-tag">Draft UUD</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 04</div>
+              <h2 class="card-title">“Apakah semua rakyat akan merasa diakui?”</h2>
+              <p class="card-sub">
+                Rumusan Piagam Jakarta dibawa ke sidang. Ada yang lega, ada yang
+                mulai ragu: bagaimana dengan pemeluk agama lain?
+              </p>
+              <p class="card-text">
+                Dalam sidang kedua, Piagam Jakarta dijadikan dasar untuk
+                rancangan pembukaan UUD 1945. Beberapa anggota mempertanyakan
+                apakah rumusan sila pertama cukup mewakili keberagaman Indonesia.
+                Namun Jepang mendesak agar rancangan segera diselesaikan —
+                banyak kegelisahan belum terjawab tuntas.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Draft konstitusi</span>
+                <span class="badge">Kegalauan ideologis</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 5. PROKLAMASI -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Proklamasi</div>
+              <div class="meta-year">17 Agustus</div>
+              <div class="meta-tag">Kemerdekaan</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 05</div>
+              <h2 class="card-title">Negara lahir, dasar masih “digodok”</h2>
+              <p class="card-sub">
+                Teks proklamasi dibacakan. Di belakang layar, persoalan
+                rumusan dasar negara belum benar-benar selesai.
+              </p>
+              <p class="card-text">
+                Proklamasi Kemerdekaan Indonesia 17 Agustus 1945 menjadi titik
+                balik sejarah. Namun sehari setelah itu, PPKI harus segera
+                mengesahkan UUD beserta dasar negara. Di saat yang sama, muncul
+                keberatan keras dari wilayah Indonesia Timur terhadap “tujuh kata”
+                dalam Piagam Jakarta.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Proklamasi</span>
+                <span class="badge">Tekanan politik</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 6. 18 AGUSTUS – PENGHAPUSAN TUJUH KATA -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">Sidang PPKI</div>
+              <div class="meta-year">18 Agustus</div>
+              <div class="meta-tag">Rumusan Final</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 06</div>
+              <h2 class="card-title">Dialog tengah malam: “Persatuan atau perpecahan?”</h2>
+              <p class="card-sub">
+                Hatta menerima pesan: jika “tujuh kata” tetap ada, wakil
+                Kristen &amp; Katolik Timur mengancam tak ikut Republik.
+              </p>
+              <p class="card-text">
+                Menanggapi keberatan itu, <strong>Moh. Hatta</strong> berbicara
+                dengan para tokoh Islam (antara lain Ki Bagus dan Kasman Singodimedjo).
+                Mereka akhirnya sepakat menghapus “<em>dengan kewajiban menjalankan
+                syariat Islam bagi pemeluk-pemeluknya</em>” dan menggantinya dengan
+                <strong>“Ketuhanan Yang Maha Esa”</strong>. Keputusan ini menjaga
+                Indonesia tetap satu, sekaligus menggeser perdebatan dari
+                “negara agama” menjadi “negara berketuhanan yang inklusif”.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Penghapusan tujuh kata</span>
+                <span class="badge">Kompromi besar</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 7. PANCASILA DALAM UUD 1945 -->
+        <article class="timeline-item">
+          <div class="timeline-meta">
+            <div class="meta-inner">
+              <div class="meta-era">UUD 1945</div>
+              <div class="meta-year">Setelahnya</div>
+              <div class="meta-tag">Pancasila yang kita kenal</div>
+            </div>
+          </div>
+          <div class="timeline-card">
+            <div class="card-inner">
+              <div class="card-label">Episode 07</div>
+              <h2 class="card-title">Lima sila, satu cerita panjang</h2>
+              <p class="card-sub">
+                Pancasila disahkan sebagai dasar negara dalam Pembukaan UUD 1945 —
+                tapi perdebatan tentang tafsirnya tak pernah benar-benar berhenti.
+              </p>
+              <p class="card-text">
+                Sejak 18 Agustus 1945, rumusan Pancasila dalam Pembukaan UUD 1945
+                menjadi dasar resmi negara Indonesia. Di tahun-tahun berikutnya,
+                Piagam Jakarta disebut “menjiwai” UUD melalui Dekret 5 Juli 1959.
+                Artinya, kompromi 1945 tetap meninggalkan jejak dalam perjalanan
+                panjang ideologi bangsa.
+              </p>
+              <div class="card-badge-row">
+                <span class="badge">Pembukaan UUD 1945</span>
+                <span class="badge">Dekret 1959</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </section>
+
+      <footer>
+        <p>
+          Dibuat sebagai media pembelajaran sejarah
+          <strong>perumusan Pancasila</strong> — silakan modifikasi teks dan
+          gaya visual sesuai kebutuhan tugas kamu.
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Efek muncul / hilang (dissolve) ketika di-scroll
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          } else {
+            // kalau mau hanya muncul sekali, hapus blok else ini
+            entry.target.classList.remove("visible");
+          }
+        });
+      },
+      {
+        threshold: 0.35,
+      }
+    );
+
+    document
+      .querySelectorAll(".timeline-item")
+      .forEach((item) => observer.observe(item));
+  </script>
+</body>
+</html>
